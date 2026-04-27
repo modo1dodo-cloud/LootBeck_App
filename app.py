@@ -1,25 +1,26 @@
-import pandas as pd
 from flask import Flask, request, jsonify
+import pandas as pd
+import os
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "LootBack Engine is Live! To search, add /search?name=YourName to the URL"
+    return "LootBeck Server is LIVE!"
 
 @app.route('/search', methods=['GET'])
 def search():
     name_query = request.args.get('name', '')
-    if not name_query:
-        return jsonify({"found": False, "message": "Please enter a name to search"})
-    
     try:
+        # التأكد من وجود ملف البيانات
+        if not os.path.exists('data.csv'):
+            return jsonify({"found": False, "error": "data.csv missing"})
+            
         df = pd.read_csv('data.csv')
-        # بحث مرن يجد الأسماء حتى لو كانت جزءاً من النص
         results = df[df['name'].str.contains(name_query, case=False, na=False)]
         return jsonify({"found": True, "results": results.to_dict(orient='records')})
     except Exception as e:
-        return jsonify({"found": False, "message": "Database error", "error": str(e)})
+        return jsonify({"found": False, "error": str(e)})
 
-# مهم جداً لـ Vercel
+# هذا السطر هو الأهم لعمل Vercel
 app = app
